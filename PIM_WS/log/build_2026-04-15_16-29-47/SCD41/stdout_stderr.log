@@ -1,0 +1,31 @@
+running egg_info
+creating ../../build/SCD41/SCD41.egg-info
+writing ../../build/SCD41/SCD41.egg-info/PKG-INFO
+writing dependency_links to ../../build/SCD41/SCD41.egg-info/dependency_links.txt
+writing requirements to ../../build/SCD41/SCD41.egg-info/requires.txt
+writing top-level names to ../../build/SCD41/SCD41.egg-info/top_level.txt
+writing manifest file '../../build/SCD41/SCD41.egg-info/SOURCES.txt'
+reading manifest file '../../build/SCD41/SCD41.egg-info/SOURCES.txt'
+adding license file 'LICENSE'
+writing manifest file '../../build/SCD41/SCD41.egg-info/SOURCES.txt'
+running build
+running build_py
+creating /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/build/SCD41/build
+creating /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/build/SCD41/build/lib
+creating /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/build/SCD41/build/lib/SCD41
+copying SCD41/__init__.py -> /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/build/SCD41/build/lib/SCD41
+running install
+running install_lib
+creating /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/install/SCD41/lib/python3.12/site-packages/SCD41
+copying /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/build/SCD41/build/lib/SCD41/__init__.py -> /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/install/SCD41/lib/python3.12/site-packages/SCD41
+byte-compiling /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/install/SCD41/lib/python3.12/site-packages/SCD41/__init__.py to __init__.cpython-312.pyc
+running install_data
+creating /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/install/SCD41/share/ament_index
+creating /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/install/SCD41/share/ament_index/resource_index
+creating /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/install/SCD41/share/ament_index/resource_index/packages
+copying resource/SCD41 -> /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/install/SCD41/share/ament_index/resource_index/packages
+copying package.xml -> /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/install/SCD41/share/SCD41
+running install_egg_info
+Copying ../../build/SCD41/SCD41.egg-info to /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/install/SCD41/lib/python3.12/site-packages/SCD41-0.0.0-py3.12.egg-info
+running install_scripts
+writing list of installed files to '/home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/build/SCD41/install.log'

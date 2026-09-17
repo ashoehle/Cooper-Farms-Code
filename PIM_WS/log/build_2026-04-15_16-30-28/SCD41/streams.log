@@ -1,0 +1,20 @@
+[1.346s] Invoking command in '/home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/src/SCD41': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PYTHONPATH=/home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/build/SCD41/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/install/SCD41/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/SCD41 build --build-base /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/build/SCD41/build install --record /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/build/SCD41/install.log --single-version-externally-managed install_data
+[1.740s] running egg_info
+[1.766s] writing ../../build/SCD41/SCD41.egg-info/PKG-INFO
+[1.766s] writing dependency_links to ../../build/SCD41/SCD41.egg-info/dependency_links.txt
+[1.769s] writing requirements to ../../build/SCD41/SCD41.egg-info/requires.txt
+[1.769s] writing top-level names to ../../build/SCD41/SCD41.egg-info/top_level.txt
+[1.831s] reading manifest file '../../build/SCD41/SCD41.egg-info/SOURCES.txt'
+[1.831s] adding license file 'LICENSE'
+[1.832s] writing manifest file '../../build/SCD41/SCD41.egg-info/SOURCES.txt'
+[1.832s] running build
+[1.832s] running build_py
+[1.832s] running install
+[1.842s] running install_lib
+[1.868s] running install_data
+[1.868s] running install_egg_info
+[1.896s] removing '/home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/install/SCD41/lib/python3.12/site-packages/SCD41-0.0.0-py3.12.egg-info' (and everything under it)
+[1.896s] Copying ../../build/SCD41/SCD41.egg-info to /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/install/SCD41/lib/python3.12/site-packages/SCD41-0.0.0-py3.12.egg-info
+[1.897s] running install_scripts
+[2.094s] writing list of installed files to '/home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/build/SCD41/install.log'
+[2.202s] Invoked command in '/home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/src/SCD41' returned '0': DEBUGINFOD_URLS=https://debuginfod.ubuntu.com PYTHONPATH=/home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/build/SCD41/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/install/SCD41/lib/python3.12/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py egg_info --egg-base ../../build/SCD41 build --build-base /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/build/SCD41/build install --record /home/cooperfarms/POULTRY_IN_MOTION/PIM_WS/build/SCD41/install.log --single-version-externally-managed install_data

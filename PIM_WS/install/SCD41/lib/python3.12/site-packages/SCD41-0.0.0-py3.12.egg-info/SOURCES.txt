@@ -1,0 +1,15 @@
+LICENSE
+package.xml
+setup.cfg
+setup.py
+../../build/SCD41/SCD41.egg-info/PKG-INFO
+../../build/SCD41/SCD41.egg-info/SOURCES.txt
+../../build/SCD41/SCD41.egg-info/dependency_links.txt
+../../build/SCD41/SCD41.egg-info/requires.txt
+../../build/SCD41/SCD41.egg-info/top_level.txt
+../../build/SCD41/SCD41.egg-info/zip-safe
+SCD41/__init__.py
+resource/SCD41
+test/test_copyright.py
+test/test_flake8.py
+test/test_pep257.py
