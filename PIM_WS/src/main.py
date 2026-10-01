@@ -34,10 +34,8 @@ SENSORS = [
 # Group by physical measurement; gas resistance and gas concentrations differ.
 PLOT_GROUPS = [
     ("Temperature", "°C", [("BME Temp", "BME680"),
-                            ("SCD4X Temperature", "SCD4X"),
                             ("SEN0469 Temp", "SEN0469")]),
-    ("Humidity", "%", [("BME Humidity", "BME680"),
-                         ("SCD4X Humidity", "SCD4X")]),
+    ("Humidity", "%", [("BME Humidity", "BME680")]),
     ("Pressure", "hPa", [("BME Pressure", "BME680")]),
     ("Altitude", "m", [("BME Altitude", "BME680")]),
     ("Gas resistance", "ohm", [("BME Gas", "BME680")]),
