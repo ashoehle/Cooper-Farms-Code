@@ -12,8 +12,8 @@ from queue import Empty, Full, Queue
 from threading import Event, Thread
 from time import monotonic
 
-SAMPLE_INTERVAL = 1.0  # Seconds between collection cycles.
-HISTORY_LENGTH = 300  # Maximum samples retained for each reading.
+SAMPLE_INTERVAL = 0.0  # Seconds between collection cycles.
+HISTORY_LENGTH = 1200  # Maximum samples retained for each reading.
 SRC = Path(__file__).resolve().parent
 
 # Module path, getter, and measurement names/units (matching the saved getters).
