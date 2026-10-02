@@ -40,7 +40,7 @@ PLOT_GROUPS = [
     ("Altitude", "m", [("BME Altitude", "BME680")]),
     ("Gas resistance", "ohm", [("BME Gas", "BME680")]),
     ("CO2", "ppm", [("SCD4X CO2", "SCD4X")]),
-    ("SEN0469 gas concentration", "sensor units", [("SEN0469 Gas", "SEN0469")]),
+    ("SEN0469 NH3 concentration", "sensor units", [("SEN0469 Gas", "SEN0469")]),
 ]
 SENSOR_COLORS = {"BME680": "tab:blue", "SCD4X": "tab:orange", "SEN0469": "tab:green"}
 
