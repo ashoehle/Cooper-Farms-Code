@@ -55,7 +55,6 @@ class SEN0469Publisher(Node):
             self.sensor = DFRobot_MultiGasSensor_UART(9600)
 
         while rclpy.ok() and not self.sensor.change_acquire_mode(self.sensor.PASSIVITY):
-            self.get_logger().info('Waiting for acquire mode change...')
             time.sleep(1)
         if not rclpy.ok():
             return
@@ -70,8 +69,6 @@ class SEN0469Publisher(Node):
         concentration = self.sensor.read_gas_concentration()
         self.concentration_publisher.publish(Float64(data=float(concentration)))
         self.temperature_publisher.publish(Float64(data=float(self.sensor.temp)))
-        self.gas_type_publisher.publish(String(data=self.sensor.gastype))
-        self.gas_units_publisher.publish(String(data=self.sensor.gasunits))
 
 
 def main(args=None):
