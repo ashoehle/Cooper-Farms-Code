@@ -13,13 +13,11 @@ class SCD41Publisher(Node):
     def __init__(self):
         super().__init__('scd41')
         self.sensor = adafruit_scd4x.SCD4X(board.I2C())
-        self.get_logger().info(f'Serial number: {[hex(i) for i in self.sensor.serial_number]}')
         self.publishers_by_reading = {
             reading: self.create_publisher(Float64, f'scd41/{reading}', 10)
             for reading in ('co2', 'temperature', 'humidity')
         }
         self.sensor.start_periodic_measurement()
-        self.get_logger().info('Waiting for first measurement...')
         self.timer = self.create_timer(1.0, self.publish_readings)
 
     def publish_readings(self):
