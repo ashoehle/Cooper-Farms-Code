@@ -18,7 +18,7 @@ class SCD41Publisher(Node):
             for reading in ('co2', 'temperature', 'humidity')
         }
         self.sensor.start_periodic_measurement()
-        self.timer = self.create_timer(1.0, self.publish_readings)
+        self.timer = self.create_timer(2.0, self.publish_readings)
 
     def publish_readings(self):
         # Publish only fresh measurements; the sensor updates slower than this timer.

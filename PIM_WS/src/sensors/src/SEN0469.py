@@ -63,9 +63,7 @@ class SEN0469Publisher(Node):
         time.sleep(1)
         self.concentration_publisher = self.create_publisher(Float64, 'sen0469/concentration', 10)
         self.temperature_publisher = self.create_publisher(Float64, 'sen0469/temperature', 10)
-        self.gas_type_publisher = self.create_publisher(String, 'sen0469/gas_type', 10)
-        self.gas_units_publisher = self.create_publisher(String, 'sen0469/gas_units', 10)
-        self.timer = self.create_timer(1.0, self.publish_readings)
+        self.timer = self.create_timer(2.0, self.publish_readings)
 
     def publish_readings(self):
         # The driver sets gas type, units, and temperature during this read.

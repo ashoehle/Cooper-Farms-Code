@@ -18,17 +18,15 @@ class BME680Publisher(Node):
         self.temperature_offset = -5
         self.publishers_by_reading = {
             reading: self.create_publisher(Float64, f'bme680/{reading}', 10)
-            for reading in ('temperature', 'gas_resistance', 'humidity', 'pressure', 'altitude')
+            for reading in ('temperature', 'gas_resistance', 'humidity')
         }
-        self.timer = self.create_timer(1.0, self.publish_readings)
+        self.timer = self.create_timer(2.0, self.publish_readings)
 
     def publish_readings(self):
         readings = {
             'temperature': self.sensor.temperature + self.temperature_offset,  # Celsius
             'gas_resistance': self.sensor.gas,  # ohms
             'humidity': self.sensor.relative_humidity,  # percent
-            'pressure': self.sensor.pressure,  # hPa
-            'altitude': self.sensor.altitude,  # meters
         }
         for reading, value in readings.items():
             self.publishers_by_reading[reading].publish(Float64(data=float(value)))
