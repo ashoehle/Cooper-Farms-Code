@@ -23,4 +23,14 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
+# Install the ROS 2 nodes and their local DFRobot driver together so that
+# the driver's import also works when launched through ros2 run.
+install(PROGRAMS
+  src/BME680.py
+  src/SCD41.py
+  src/SEN0469.py
+  DESTINATION lib/${PROJECT_NAME}
+)
+install(FILES src/DFRobot_MultiGasSensor.py DESTINATION lib/${PROJECT_NAME})
+
 ament_package()

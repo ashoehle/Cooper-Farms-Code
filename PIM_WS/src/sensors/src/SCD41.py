@@ -1,21 +1,59 @@
+#!/usr/bin/env python3
 # SPDX-FileCopyrightText: 2020 by Bryan Siepert, written for Adafruit Industries
 # SPDX-License-Identifier: Unlicense
-import time
+
 import board
 import adafruit_scd4x
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Float64
 
-i2c = board.I2C()  # uses board.SCL and board.SDA
-# i2c = board.STEMMA_I2C()  # For using the built-in STEMMA QT connector on a microcontroller
-scd4x = adafruit_scd4x.SCD4X(i2c)
-print("Serial number:", [hex(i) for i in scd4x.serial_number])
 
-scd4x.start_periodic_measurement()
-print("Waiting for first measurement....")
+class SCD41Publisher(Node):
+    def __init__(self):
+        super().__init__('scd41')
+        self.sensor = adafruit_scd4x.SCD4X(board.I2C())
+        self.get_logger().info(f'Serial number: {[hex(i) for i in self.sensor.serial_number]}')
+        self.publishers_by_reading = {
+            reading: self.create_publisher(Float64, f'scd41/{reading}', 10)
+            for reading in ('co2', 'temperature', 'humidity')
+        }
+        self.sensor.start_periodic_measurement()
+        self.get_logger().info('Waiting for first measurement...')
+        self.timer = self.create_timer(1.0, self.publish_readings)
 
-while True:
-    if scd4x.data_ready:
-        print(f"CO2: {scd4x.CO2:d} ppm")
-        print(f"Temperature: {scd4x.temperature:0.1f} *C")
-        print(f"Humidity: {scd4x.relative_humidity:0.1f} %")
-        print()
-    time.sleep(1)
+    def publish_readings(self):
+        # Publish only fresh measurements; the sensor updates slower than this timer.
+        if not self.sensor.data_ready:
+            return
+        readings = {
+            'co2': self.sensor.CO2,  # ppm
+            'temperature': self.sensor.temperature,  # Celsius
+            'humidity': self.sensor.relative_humidity,  # percent
+        }
+        for reading, value in readings.items():
+            self.publishers_by_reading[reading].publish(Float64(data=float(value)))
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = None
+    try:
+        node = SCD41Publisher()
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if node is not None:
+            try:
+                node.sensor.stop_periodic_measurement()
+            finally:
+                node.destroy_node()
+                if rclpy.ok():
+                    rclpy.shutdown()
+        elif rclpy.ok():
+            rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

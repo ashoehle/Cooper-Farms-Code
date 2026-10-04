@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*
 '''
   @file  read_gas_concentration.py
@@ -28,44 +29,67 @@
   @date        2021-03-28
   @url         https://github.com/DFRobot/DFRobot_MultiGasSensor
 '''
-import sys
-import os
 import time
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__)))))
-from DFRobot_MultiGasSensor import *
+import rclpy
+from rclpy.node import Node
+from std_msgs.msg import Float64, String
 
-'''
-  ctype=1:UART
-  ctype=0:IIC
-'''
-ctype=0
+from DFRobot_MultiGasSensor import (
+    DFRobot_MultiGasSensor_I2C,
+    DFRobot_MultiGasSensor_UART,
+)
 
-if ctype==0:
-  I2C_1       = 0x01               # I2C_1 Use i2c1 interface (or i2c0 with configuring Raspberry Pi) to drive sensor
-  I2C_ADDRESS = 0x74               # I2C Device address, which can be changed by changing A1 and A0,
-                                   # the default address on the terminal board as shipped is 0x74
-  gas = DFRobot_MultiGasSensor_I2C(I2C_1 ,I2C_ADDRESS)
-else:
-  gas = DFRobot_MultiGasSensor_UART(9600)
+# ctype=0: I2C; ctype=1: UART. Preserve the original connection settings.
+ctype = 0
+I2C_1 = 0x01
+I2C_ADDRESS = 0x74
 
-def setup():
-  #Mode of obtaining data: the main controller needs to request the sensor for data
-  while (False == gas.change_acquire_mode(gas.PASSIVITY)):
-    print("wait acquire mode change!")
-    time.sleep(1)
-  print("change acquire mode success!")
-  gas.set_temp_compensation(gas.ON)
-  time.sleep(1)
-  
-def loop():
-  # Gastype is set while reading the gas level. Must first perform a read before
-  # attempting to use it.
-  con = gas.read_gas_concentration()
-  print ("Ambient "+ gas.gastype + " concentration: %.2f " % con + gas.gasunits + " temp: %.1fC" % gas.temp)
-  time.sleep(1)  
 
-if __name__ == "__main__":
-  setup()
-  while True:
-    loop()
+class SEN0469Publisher(Node):
+    def __init__(self):
+        super().__init__('sen0469')
+        if ctype == 0:
+            self.sensor = DFRobot_MultiGasSensor_I2C(I2C_1, I2C_ADDRESS)
+        else:
+            self.sensor = DFRobot_MultiGasSensor_UART(9600)
+
+        while rclpy.ok() and not self.sensor.change_acquire_mode(self.sensor.PASSIVITY):
+            self.get_logger().info('Waiting for acquire mode change...')
+            time.sleep(1)
+        if not rclpy.ok():
+            return
+        self.sensor.set_temp_compensation(self.sensor.ON)
+        time.sleep(1)
+        self.concentration_publisher = self.create_publisher(Float64, 'sen0469/concentration', 10)
+        self.temperature_publisher = self.create_publisher(Float64, 'sen0469/temperature', 10)
+        self.gas_type_publisher = self.create_publisher(String, 'sen0469/gas_type', 10)
+        self.gas_units_publisher = self.create_publisher(String, 'sen0469/gas_units', 10)
+        self.timer = self.create_timer(1.0, self.publish_readings)
+
+    def publish_readings(self):
+        # The driver sets gas type, units, and temperature during this read.
+        concentration = self.sensor.read_gas_concentration()
+        self.concentration_publisher.publish(Float64(data=float(concentration)))
+        self.temperature_publisher.publish(Float64(data=float(self.sensor.temp)))
+        self.gas_type_publisher.publish(String(data=self.sensor.gastype))
+        self.gas_units_publisher.publish(String(data=self.sensor.gasunits))
+
+
+def main(args=None):
+    rclpy.init(args=args)
+    node = None
+    try:
+        node = SEN0469Publisher()
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if node is not None:
+            node.destroy_node()
+        if rclpy.ok():
+            rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
