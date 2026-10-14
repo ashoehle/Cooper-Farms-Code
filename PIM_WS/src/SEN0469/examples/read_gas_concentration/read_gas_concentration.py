@@ -49,15 +49,31 @@ if ctype==0:
 else:
   gas = DFRobot_MultiGasSensor_UART(9600)
 
+_initialized = False
+
 def setup():
+  global _initialized
+  if _initialized:
+    return
   #Mode of obtaining data: the main controller needs to request the sensor for data
-  while (False == gas.change_acquire_mode(gas.PASSIVITY)):
-    print("wait acquire mode change!")
+  for attempt in range(3):
+    if gas.change_acquire_mode(gas.PASSIVITY):
+      break
     time.sleep(1)
+  else:
+    raise RuntimeError("SEN0469 did not enter passive acquisition mode")
   print("change acquire mode success!")
   gas.set_temp_compensation(gas.ON)
   time.sleep(1)
+  _initialized = True
   
+def get_SEN0469_data():
+  setup()
+  return {
+    "SEN0469 Gas": gas.read_gas_concentration(),
+    "SEN0469 Temp": gas.temp
+  }
+
 def loop():
   # Gastype is set while reading the gas level. Must first perform a read before
   # attempting to use it.

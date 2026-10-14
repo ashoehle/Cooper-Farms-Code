@@ -18,13 +18,23 @@ bme680.sea_level_pressure = 1013.25
 # You will usually have to add an offset to account for the temperature of
 # the sensor. This is usually around 5 degrees but varies by use. Use a
 # separate temperature sensor to calibrate this one.
-temperature_offset = -5
+temperature_offset = -0.6
 
-while True:
-    print(f"\nTemperature: {bme680.temperature + temperature_offset:0.1f} C")
-    print(f"Gas: {bme680.gas:d} ohm")
-    print(f"Humidity: {bme680.relative_humidity:0.1f} %")
-    print(f"Pressure: {bme680.pressure:0.3f} hPa")
-    print(f"Altitude = {bme680.altitude:0.2f} meters")
+def get_bme680_data():
+    return {
+        "BME Temp": bme680.temperature + temperature_offset,
+        "BME Gas": bme680.gas,
+        "BME Humidity": bme680.relative_humidity,
+        "BME Pressure": bme680.pressure,
+        "BME Altitude": bme680.altitude
+    }
 
-    time.sleep(1)
+if __name__ == "__main__":
+    while True:
+        print(f"\nTemperature: {bme680.temperature + temperature_offset:0.1f} C")
+        print(f"Gas: {bme680.gas:d} ohm")
+        print(f"Humidity: {bme680.relative_humidity:0.1f} %")
+        print(f"Pressure: {bme680.pressure:0.3f} hPa")
+        print(f"Altitude = {bme680.altitude:0.2f} meters")
+
+        time.sleep(1)

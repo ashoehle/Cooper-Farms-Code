@@ -12,10 +12,21 @@ print("Serial number:", [hex(i) for i in scd4x.serial_number])
 scd4x.start_periodic_measurement()
 print("Waiting for first measurement....")
 
-while True:
-    if scd4x.data_ready:
-        print(f"CO2: {scd4x.CO2:d} ppm")
-        print(f"Temperature: {scd4x.temperature:0.1f} *C")
-        print(f"Humidity: {scd4x.relative_humidity:0.1f} %")
-        print()
-    time.sleep(1)
+def get_scd4x_data():
+    """Return a fresh reading, or an empty dict while a measurement is pending."""
+    if not scd4x.data_ready:
+        return {}
+    return {
+        "SCD4X CO2": scd4x.CO2,
+        "SCD4X Temperature": scd4x.temperature,
+        "SCD4X Humidity": scd4x.relative_humidity
+    }
+
+if __name__ == "__main__":
+    while True:
+        if scd4x.data_ready:
+            print(f"CO2: {scd4x.CO2:d} ppm")
+            print(f"Temperature: {scd4x.temperature:0.1f} *C")
+            print(f"Humidity: {scd4x.relative_humidity:0.1f} %")
+            print()
+        time.sleep(1)
