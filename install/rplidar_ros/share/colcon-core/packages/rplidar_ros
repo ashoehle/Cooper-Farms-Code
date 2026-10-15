@@ -1,1 +1,1 @@
-rclcpp:rclcpp_components:sensor_msgs:std_srvs
+ament_index_python:launch:launch_ros:rclcpp:rviz2:sensor_msgs:std_srvs

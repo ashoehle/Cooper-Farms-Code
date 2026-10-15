@@ -53,30 +53,15 @@ find_package(std_srvs REQUIRED)
 include_directories(
   ${RPLIDAR_SDK_PATH}/include
   ${RPLIDAR_SDK_PATH}/src
-  ${Boost_INCLUDE_DIRS}
 )
 
 add_executable(rplidar_node	src/rplidar_node.cpp ${RPLIDAR_SDK_SRC})
-# target_link_libraries(rplidar_node ${ament_cmake_LIBRARIES})
 ament_target_dependencies(rplidar_node
   rclcpp
   std_srvs
   sensor_msgs
 )
 
-add_executable(rplidar_composition src/rplidar_node.cpp ${RPLIDAR_SDK_SRC})
-ament_target_dependencies(rplidar_composition
-  rclcpp
-  std_srvs
-  sensor_msgs
-)
-
-add_executable(rplidar_client src/rplidar_client.cpp)
-ament_target_dependencies(rplidar_client
-  rclcpp
-  std_srvs
-  sensor_msgs
-)
 ################################################################################
 # Install
 ################################################################################
@@ -85,7 +70,7 @@ install(DIRECTORY launch rviz
 )
 
 install(
-  TARGETS rplidar_node rplidar_composition rplidar_client
+  TARGETS rplidar_node
   RUNTIME DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -93,7 +78,5 @@ install(
 # Macro for ament package
 ################################################################################
 ament_export_dependencies(rclcpp)
-ament_export_dependencies(std_msgs)
 ament_export_dependencies(sensor_msgs)
-ament_export_include_directories(include)
 ament_package()
