@@ -1,1 +1,0 @@
-/home/matthew-daanen/Documents/GitHub/Cooper-Farms-Code/build/sensors/ament_cmake_environment_hooks/local_setup.bash

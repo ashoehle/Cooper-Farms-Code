@@ -1,1 +1,0 @@
-/home/matthew-daanen/Documents/GitHub/Cooper-Farms-Code/build/rplidar_ros/ament_cmake_core/rplidar_rosConfig.cmake
