@@ -1,3 +1,15 @@
 {
     "cmake.sourceDirectory": "/home/matthew-daanen/Documents/GitHub/Cooper-Farms-Code/PIM_WS/src/sensors"
+     "version": "0.2.0",
+     "configurations": [
+        {
+            "name": "Python: Current File with Port",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "args": ["-p", "COM11"]
+        }
+    ]
 }
+
