@@ -1,0 +1,109 @@
+import time
+import logging
+import argparse
+from basicmicro import Basicmicro
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+# Create Movement Functions
+def forwardMovement(controller: Basicmicro, address: int, speed: int, duration: float) -> None:
+    """Creates a forward movement command for the robot and ensures turn rate is 0."""
+    logger.info(f"Mixed mode: Forward at speed {speed} for {duration} seconds")
+    controller.TurnRightMixed(address, 0)  # Clear any lingering turn command first!
+    controller.ForwardMixed(address, speed)  
+    time.sleep(duration)
+
+def turnRightMovement(controller: Basicmicro, address: int, speed: int, duration: float) -> None:
+    """Creates a right turn movement command for the robot and ensures forward speed is 0."""
+    logger.info(f"Mixed mode: Turn right at speed {speed} for {duration} seconds")
+    controller.ForwardMixed(address, 0)  # Clear any lingering forward command first!
+    controller.TurnRightMixed(address, speed)  
+    time.sleep(duration)
+
+def turnLeftMovement(controller: Basicmicro, address: int, speed: int, duration: float) -> None:
+    """Creates a left turn movement command for the robot and ensures forward speed is 0."""
+    logger.info(f"Mixed mode: Turn left at speed {speed} for {duration} seconds")
+    controller.ForwardMixed(address, 0)  # Clear any lingering forward command first!
+    controller.TurnLeftMixed(address, speed)  
+    time.sleep(duration)
+
+def stopMovement(controller: Basicmicro, address: int) -> None:
+    """Stops all mixed mode movements by zeroing both channels."""
+    logger.info("Mixed mode: Stopping all movement")
+    controller.ForwardMixed(address, 0)
+    controller.TurnRightMixed(address, 0)
+
+def main():
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description='Basicmicro motor controller basic movement example')
+    parser.add_argument('-p', '--port', type=str, required=True, help='Serial port (e.g., /dev/ttyACM0, COM11)')
+    parser.add_argument('-b', '--baud', type=int, default=115200, help='Baud rate (default: 115200)')
+    parser.add_argument('-a', '--address', type=lambda x: int(x, 0), default=0x80, 
+                        help='Controller address (default: 0x80)')
+    args = parser.parse_args()
+    
+    logger.info(f"Connecting to controller at {args.port}, baud rate {args.baud}")
+    
+    try:
+        with Basicmicro(args.port, args.baud) as controller:
+            # Read firmware version
+            version_result = controller.ReadVersion(args.address)
+            if version_result:
+                logger.info(f"Connected to controller with firmware version: {version_result}")
+            else:
+                logger.error("Failed to read firmware version!")
+                return
+            
+            # Mixed Mode Control Sequence
+            logger.info("\n=== MIXED MODE CONTROL ===")
+            
+            # 1. Forward movement
+            forwardMovement(controller, args.address, speed=16, duration=10.0)
+            stopMovement(controller, args.address)
+            
+            # 2. Turning right in place
+            turnRightMovement(controller, args.address, speed=16, duration=2.0)
+            stopMovement(controller, args.address)  # Stop the turn before moving forward
+
+            # 3. Forward movement
+            forwardMovement(controller, args.address, speed=16, duration=2.0)
+            stopMovement(controller, args.address)
+
+            # 4. Turning right in place
+            turnRightMovement(controller, args.address, speed=16, duration=2.0)
+            stopMovement(controller, args.address)  # Stop the turn before moving forward
+
+            # 5. Forward movement (Both motors will now fire equally)
+            forwardMovement(controller, args.address, speed=16, duration=10.0)
+            stopMovement(controller, args.address)
+
+            # 6. Turning left in place
+            turnLeftMovement(controller, args.address, speed=16, duration=2.0)
+            stopMovement(controller, args.address)  # Stop the turn before moving forward
+
+            # 7. Forward movement (Both motors will now fire equally)
+            forwardMovement(controller, args.address, speed=16, duration=2.0)
+            stopMovement(controller, args.address)
+
+            # 8. Turning left in place
+            turnLeftMovement(controller, args.address, speed=16, duration=2.0)
+            stopMovement(controller, args.address)  # Stop the turn before moving forward
+
+            # 9. Forward movement
+            forwardMovement(controller, args.address, speed=16, duration=10.0)
+            
+            # Final stop
+            stopMovement(controller, args.address)
+            
+            logger.info("Movement examples completed")
+            
+    except Exception as e:
+        logger.error(f"Error during test: {str(e)}")
+
+if __name__ == "__main__":
+    main()
