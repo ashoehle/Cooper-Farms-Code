@@ -143,7 +143,22 @@ except ValueError:
 original_autoscale = DataPlot._merged_autoscale
 
 def padded_autoscale(self):
+    scroll_limits = None
+    if self._autoscroll:
+        # RQt resets an empty plot to [0, 1], then reuses that one-second
+        # width when data arrives. Enforce the intended window on every redraw.
+        self._autoscale_x = False
+        latest_times = []
+        for curve in self._curves.values():
+            finite_times = curve['x'][np.isfinite(curve['x'])]
+            if finite_times.size:
+                latest_times.append(float(finite_times.max()))
+        right = max(latest_times, default=60.0)
+        scroll_limits = [right - 60.0, right]
+        self.set_xlim(scroll_limits)
     original_autoscale(self)
+    if scroll_limits is not None:
+        self.set_xlim(scroll_limits)
     if not self._autoscale_y:
         return
     # Recompute from actual visible samples, including the newest endpoint.
@@ -169,6 +184,16 @@ def padded_autoscale(self):
     self.set_ylim([low - margin, high + margin])
 
 DataPlot._merged_autoscale = padded_autoscale
+
+# RQt does not save the marker checkbox in its perspective. Enable it after
+# each panel restores its settings, including curves already subscribed.
+original_restore_settings = DataPlot.restore_settings
+
+def restore_with_markers(self, plugin_settings, instance_settings):
+    original_restore_settings(self, plugin_settings, instance_settings)
+    self._switch_plot_markers(True)
+
+DataPlot.restore_settings = restore_with_markers
 if __name__ == '__main__':
     sys.exit(Main().main(['rqt', '--perspective-file', sys.argv[1]]))
 PY
