@@ -2,6 +2,7 @@
 # Open LiDAR RViz, camera RQt, and one plot per environmental sensor topic.
 # Start main.sh first, or start lidar.sh, camera.sh, and sensors.sh separately.
 # Optional: IMAGE_TOPIC=/camera/image_raw ./view.sh
+# Optional: PLOT_Y_PADDING=0.20 ./view.sh  # 20% vertical margin (default 10%)
 set -eo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 viewer_workspace="${PIM_WS:-$script_dir/PIM_WS}"
@@ -122,11 +123,61 @@ window.close()
 print(f'Opening {len(topics)} sensor plots with a scrolling 60-second view.', flush=True)
 PY
 
+# Apply padding only inside this plot viewer; leave the installed RQt unchanged.
+cat > "$plot_tmp_dir/padded_rqt.py" <<'PY'
+import math
+import os
+import sys
+
+import numpy as np
+from rqt_plot.data_plot import DataPlot
+from rqt_gui.main import Main
+
+try:
+    padding = float(os.environ.get('PLOT_Y_PADDING', '0.10'))
+    if not math.isfinite(padding) or padding < 0:
+        raise ValueError()
+except ValueError:
+    sys.exit('PLOT_Y_PADDING must be a finite nonnegative number, such as 0.10.')
+
+original_autoscale = DataPlot._merged_autoscale
+
+def padded_autoscale(self):
+    original_autoscale(self)
+    if not self._autoscale_y:
+        return
+    # Recompute from actual visible samples, including the newest endpoint.
+    # Using padded axis limits as input would grow the margin every redraw.
+    xmin, xmax = self.get_xlim()
+    samples = []
+    for curve in self._curves.values():
+        values = curve['y']
+        if self._autoscale_y & DataPlot.SCALE_VISIBLE:
+            values = values[(curve['x'] >= xmin) & (curve['x'] <= xmax)]
+        finite = values[np.isfinite(values)]
+        if finite.size:
+            samples.append(finite)
+    if not samples:
+        return
+    low = min(float(values.min()) for values in samples)
+    high = max(float(values.max()) for values in samples)
+    # A minimum span keeps flat or nearly constant sensor readings readable.
+    span = max(high - low, 0.1 * max(abs(low), abs(high)), 1.0)
+    margin = padding * span
+    if high == low and margin == 0:
+        margin = 0.5
+    self.set_ylim([low - margin, high + margin])
+
+DataPlot._merged_autoscale = padded_autoscale
+if __name__ == '__main__':
+    sys.exit(Main().main(['rqt', '--perspective-file', sys.argv[1]]))
+PY
+
 ros2 launch rplidar_ros rplidar_rviz.py "$@" &
 children+=("$!")
 ros2 run rqt_image_view rqt_image_view "${IMAGE_TOPIC:-/camera/image_raw}" &
 children+=("$!")
-ros2 run rqt_gui rqt_gui --perspective-file "$plot_tmp_dir/sensor_plots.perspective" &
+python3 "$plot_tmp_dir/padded_rqt.py" "$plot_tmp_dir/sensor_plots.perspective" &
 children+=("$!")
 # Closing any viewer stops the others; Ctrl+C stops all viewers.
 wait -n "${children[@]}"
