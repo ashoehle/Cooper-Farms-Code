@@ -629,7 +629,6 @@ class DFRobot_MultiGasSensor_I2C(DFRobot_MultiGasSensor):
         self.i2cbus.write_i2c_block_data(self.__addr ,reg ,data)
         return
       except:
-        print("please check connect!")
         time.sleep(1)
         return
 

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Open LiDAR RViz and camera rqt. Start lidar.sh and camera.sh separately.
-# Optional: IMAGE_TOPIC=/camera/image_raw ./view_sensors.sh
+# Open LiDAR RViz, camera RQt, and one plot per environmental sensor topic.
+# Start main.sh first, or start lidar.sh, camera.sh, and sensors.sh separately.
+# Optional: IMAGE_TOPIC=/camera/image_raw ./view.sh
 set -eo pipefail
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 viewer_workspace="${PIM_WS:-$script_dir/PIM_WS}"
@@ -14,20 +15,118 @@ source /opt/ros/jazzy/setup.bash
 source "$viewer_workspace/install/setup.bash"
 
 children=()
+plot_tmp_dir=""
 cleanup() {
   trap - EXIT INT TERM
   if (( ${#children[@]} )); then
     kill -TERM "${children[@]}" 2>/dev/null || true
     wait "${children[@]}" 2>/dev/null || true
   fi
+  if [[ -n "$plot_tmp_dir" ]]; then
+    rm -rf -- "$plot_tmp_dir"
+  fi
 }
 trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
+# Generate a fresh RQt perspective. These Float64 topics match the publishers
+# in PIM_WS/src/sensors/src/{BME680,SCD41,SEN0469}.py.
+plot_tmp_dir=$(mktemp -d)
+QT_QPA_PLATFORM=offscreen python3 - "$plot_tmp_dir/sensor_plots.perspective" <<'PY'
+import json
+import sys
+from pathlib import Path
+import xml.etree.ElementTree as ET
+
+try:
+    from python_qt_binding.QtCore import Qt
+    from python_qt_binding.QtWidgets import QApplication, QDockWidget, QMainWindow, QWidget
+    from qt_gui.plugin_instance_id import PluginInstanceId
+    from rqt_py_common.ini_helper import pack
+    from rqt_plot.data_plot import DataPlot
+    from ament_index_python.packages import get_package_share_directory
+except ImportError as error:
+    sys.exit(f'Missing plotting dependency: {error}\n'
+             'Install: sudo apt install ros-jazzy-rqt-plot')
+
+backends = [i for i, backend in enumerate(DataPlot.plot_types) if backend['enabled']]
+if not backends:
+    sys.exit('No plotting backend. Install python3-pyqtgraph or python3-matplotlib.')
+
+topics = [
+    '/bme680/temperature',
+    '/bme680/humidity',
+    '/bme680/gas_resistance',
+    '/scd41/temperature',
+    '/scd41/humidity',
+    '/scd41/co2',
+    '/sen0469/temperature',
+    '/sen0469/concentration',
+]
+
+def value(item):
+    return {'type': 'repr', 'repr': repr(item)}
+
+def group(keys=None, groups=None):
+    return {'keys': {key: value(item) for key, item in (keys or {}).items()},
+            'groups': groups or {}}
+
+# Let Qt produce a compatible saved layout: four columns of two plots.
+app = QApplication([])
+window = QMainWindow()
+window.setDockNestingEnabled(True)
+window.resize(1400, 1000)
+# loadUi sets the plot's final object name from the installed .ui file.
+# RQt can only restore positions when these names match its actual docks.
+plot_ui = Path(get_package_share_directory('rqt_plot')) / 'resource' / 'plot.ui'
+plot_widget_name = ET.parse(plot_ui).getroot().find('widget').attrib['name']
+instances = {}
+docks = []
+plugin_id = 'rqt_plot/Plot'
+for number, topic in enumerate(topics, start=1):
+    instance = PluginInstanceId(plugin_id, number)
+    instances['plugin__' + instance.tidy_str()] = group(groups={
+        'plugin': group({'topics': pack([topic + '/data']), 'autoscroll': True,
+                         'plot_type': backends[0], 'x_limits': pack([0.0, 60.0])})
+    })
+    dock = QDockWidget(topic, window)
+    dock.setObjectName(instance.tidy_str() + '__' + plot_widget_name)
+    dock.setWidget(QWidget())
+    window.addDockWidget(Qt.LeftDockWidgetArea, dock)
+    index = number - 1
+    if 0 < index < 4:
+        window.splitDockWidget(docks[index - 1], dock, Qt.Horizontal)
+    elif index >= 4:
+        window.splitDockWidget(docks[index - 4], dock, Qt.Vertical)
+    docks.append(dock)
+window.show()
+app.processEvents()
+window.resizeDocks(docks[:4], [1] * 4, Qt.Horizontal)
+for column in (docks[index::4] for index in range(4)):
+    window.resizeDocks(column, [1] * len(column), Qt.Vertical)
+app.processEvents()
+mainwindow = group()
+mainwindow['keys']['state'] = {
+    'type': 'repr(QByteArray.hex)',
+    'repr(QByteArray.hex)': repr(bytes(window.saveState().toHex())),
+}
+perspective = group(groups={
+    'mainwindow': mainwindow,
+    'pluginmanager': group({'running-plugins': {plugin_id: list(range(1, len(topics) + 1))}},
+                           instances),
+})
+with open(sys.argv[1], 'w', encoding='utf-8') as stream:
+    json.dump(perspective, stream, indent=2)
+window.close()
+print(f'Opening {len(topics)} sensor plots with a scrolling 60-second view.', flush=True)
+PY
+
 ros2 launch rplidar_ros rplidar_rviz.py "$@" &
 children+=("$!")
 ros2 run rqt_image_view rqt_image_view "${IMAGE_TOPIC:-/camera/image_raw}" &
 children+=("$!")
-# Closing either viewer stops the other; Ctrl+C stops both.
+ros2 run rqt_gui rqt_gui --perspective-file "$plot_tmp_dir/sensor_plots.perspective" &
+children+=("$!")
+# Closing any viewer stops the others; Ctrl+C stops all viewers.
 wait -n "${children[@]}"
