@@ -14,8 +14,8 @@ class BME680Publisher(Node):
         super().__init__('bme680')
         self.sensor = adafruit_bme680.Adafruit_BME680_I2C(board.I2C(), debug=False)
         self.sensor.sea_level_pressure = 1013.25
-        # Calibrate this offset against a separate temperature sensor.
-        self.temperature_offset = -5
+        # Calibrate this Fahrenheit offset against a separate temperature sensor.
+        self.temperature_offset_f = -9.0
         self.publishers_by_reading = {
             reading: self.create_publisher(Float64, f'bme680/{reading}', 10)
             for reading in ('temperature', 'gas_resistance', 'humidity')
@@ -24,7 +24,7 @@ class BME680Publisher(Node):
 
     def publish_readings(self):
         readings = {
-            'temperature': self.sensor.temperature + self.temperature_offset,  # Celsius
+            'temperature': self.sensor.temperature * 9.0 / 5.0 + 32.0 + self.temperature_offset_f,  # Fahrenheit
             'gas_resistance': self.sensor.gas,  # ohms
             'humidity': self.sensor.relative_humidity,  # percent
         }

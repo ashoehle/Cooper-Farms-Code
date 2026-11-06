@@ -26,7 +26,7 @@ class SCD41Publisher(Node):
             return
         readings = {
             'co2': self.sensor.CO2,  # ppm
-            'temperature': self.sensor.temperature,  # Celsius
+            'temperature': self.sensor.temperature * 9.0 / 5.0 + 32.0,  # Fahrenheit
             'humidity': self.sensor.relative_humidity,  # percent
         }
         for reading, value in readings.items():

@@ -68,7 +68,8 @@ class SEN0469Publisher(Node):
         # The driver sets gas type, units, and temperature during this read.
         concentration = self.sensor.read_gas_concentration()
         self.concentration_publisher.publish(Float64(data=float(concentration)))
-        self.temperature_publisher.publish(Float64(data=float(self.sensor.temp)))
+        temperature_f = float(self.sensor.temp) * 9.0 / 5.0 + 32.0
+        self.temperature_publisher.publish(Float64(data=temperature_f))
 
 
 def main(args=None):
