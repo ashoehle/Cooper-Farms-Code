@@ -72,7 +72,7 @@ plot_labels = [
     ('SCD41 Humidity', 'Relative humidity (%)'),
     ('SCD41 CO₂', 'CO₂ (ppm)'),
     ('SEN0469 Temperature', 'Temperature (°F)'),
-    ('SEN0469 Gas Concentration', 'Gas concentration (ppm)'),
+    ('SEN0469 NH3 Concentration', 'NH3 concentration (ppm)'),
 ]
 
 def value(item):
