@@ -64,6 +64,17 @@ topics = [
     '/sen0469/concentration',
 ]
 
+plot_labels = [
+    ('BME680 Temperature', 'Temperature (°F)'),
+    ('BME680 Humidity', 'Relative humidity (%)'),
+    ('BME680 Gas Resistance', 'Gas resistance (Ω)'),
+    ('SCD41 Temperature', 'Temperature (°F)'),
+    ('SCD41 Humidity', 'Relative humidity (%)'),
+    ('SCD41 CO₂', 'CO₂ (ppm)'),
+    ('SEN0469 Temperature', 'Temperature (°F)'),
+    ('SEN0469 Gas Concentration', 'Gas concentration (ppm)'),
+]
+
 def value(item):
     return {'type': 'repr', 'repr': repr(item)}
 
@@ -87,7 +98,9 @@ for number, topic in enumerate(topics, start=1):
     instance = PluginInstanceId(plugin_id, number)
     instances['plugin__' + instance.tidy_str()] = group(groups={
         'plugin': group({'topics': pack([topic + '/data']), 'autoscroll': True,
-                         'plot_type': backends[0], 'x_limits': pack([0.0, 60.0])})
+                         'plot_type': backends[0], 'x_limits': pack([0.0, 60.0]),
+                         'sensor_title': plot_labels[number - 1][0],
+                         'sensor_y_label': plot_labels[number - 1][1]})
     })
     dock = QDockWidget(topic, window)
     dock.setObjectName(instance.tidy_str() + '__' + plot_widget_name)
@@ -183,11 +196,49 @@ def padded_autoscale(self):
 
 DataPlot._merged_autoscale = padded_autoscale
 
+# Store labels on DataPlot so switching plotting backends preserves them.
+def apply_sensor_labels(self):
+    labels = getattr(self, '_sensor_labels', None)
+    if labels is None:
+        return
+    title, y_label = labels
+    backend = self._data_plot_widget
+    x_label = 'Time (s)'
+    if hasattr(backend, '_plot_widget'):  # PyQtGraph
+        plot = backend._plot_widget.getPlotItem()
+        plot.setTitle(title, color='#222222')
+        plot.setLabel('bottom', x_label)
+        plot.setLabel('left', y_label)
+    elif hasattr(backend, '_canvas'):  # Matplotlib
+        canvas = backend._canvas
+        canvas.axes.set_title(title)
+        canvas.axes.set_xlabel(x_label)
+        canvas.axes.set_ylabel(y_label)
+        canvas.figure.tight_layout()
+        canvas.draw_idle()
+    elif hasattr(backend, 'setAxisTitle'):  # Qwt
+        backend.setTitle(title)
+        backend.setAxisTitle(backend.xBottom, x_label)
+        backend.setAxisTitle(backend.yLeft, y_label)
+        backend.replot()
+
+original_switch_backend = DataPlot._switch_data_plot_widget
+
+def switch_with_labels(self, plot_index, markers_on=False):
+    original_switch_backend(self, plot_index, markers_on)
+    apply_sensor_labels(self)
+
+DataPlot._switch_data_plot_widget = switch_with_labels
+
 # RQt does not save the marker checkbox in its perspective. Enable it after
 # each panel restores its settings, including curves already subscribed.
 original_restore_settings = DataPlot.restore_settings
 
 def restore_with_markers(self, plugin_settings, instance_settings):
+    self._sensor_labels = (
+        instance_settings.value('sensor_title', 'Sensor Readings'),
+        instance_settings.value('sensor_y_label', 'Value'),
+    )
     original_restore_settings(self, plugin_settings, instance_settings)
     self._switch_plot_markers(True)
 
